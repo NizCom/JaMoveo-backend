@@ -11,9 +11,10 @@ import { fileURLToPath } from "url";
 import fs from "fs/promises";
 
 const app = express();
+const allowedOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "http://localhost:5173", methods: ["GET", "POST"] },
+  cors: { origin: allowedOrigin, methods: ["GET", "POST"] },
 });
 const PORT = 5000;
 
@@ -197,8 +198,17 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+const DEPLOYMENT_PORT = process.env.PORT || 5000;
+
+server.listen(DEPLOYMENT_PORT, "0.0.0.0", () => {
+  // Bind to 0.0.0.0 for all network interfaces
+  console.log(`Server running on port ${DEPLOYMENT_PORT}`);
+  // In production, the URL won't be localhost, but the Render domain
+  console.log(
+    `Server accessible at: ${
+      process.env.RENDER_EXTERNAL_URL || `http://localhost:${DEPLOYMENT_PORT}`
+    }`
+  );
 });
 
 // HELPERS
